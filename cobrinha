@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Jogo da Cobrinha</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    canvas {
+      background-color: #222;
+      border: 2px solid #0f0;
+      margin-top: 10px;
+    }
+
+    .controls {
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #0f0;
+      border: none;
+      color: black;
+      padding: 8px 16px;
+      margin: 0 5px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0c0;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Jogo da Cobrinha</h1>
+  <div class="controls">
+    <span>Velocidade:</span>
+    <button onclick="startGame(300)">Fácil</button>
+    <button onclick="startGame(150)">Médio</button>
+    <button onclick="startGame(75)">Difícil</button>
+  </div>
+  <canvas id="game" width="400" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const box = 20;
+    const rows = canvas.height / box;
+    const cols = canvas.width / box;
+
+    let snake, direction, food, game;
+
+    function resetGame() {
+      snake = [{ x: 9 * box, y: 9 * box }];
+      direction = 'RIGHT';
+      food = {
+        x: Math.floor(Math.random() * cols) * box,
+        y: Math.floor(Math.random() * rows) * box
+      };
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Cobra
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = i === 0 ? '#0f0' : '#0b0';
+        ctx.fillRect(snake[i].x, snake[i].y, box, box);
+      }
+
+      // Comida
+      ctx.fillStyle = 'red';
+      ctx.fillRect(food.x, food.y, box, box);
+
+      // Movimento
+      let head = { ...snake[0] };
+      if (direction === 'LEFT') head.x -= box;
+      if (direction === 'RIGHT') head.x += box;
+      if (direction === 'UP') head.y -= box;
+      if (direction === 'DOWN') head.y += box;
+
+      // Colisão com parede ou corpo
+      if (
+        head.x < 0 || head.x >= canvas.width ||
+        head.y < 0 || head.y >= canvas.height ||
+        collision(head, snake)
+      ) {
+        clearInterval(game);
+        alert('Fim de jogo!');
+        return;
+      }
+
+      snake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        food = {
+          x: Math.floor(Math.random() * cols) * box,
+          y: Math.floor(Math.random() * rows) * box
+        };
+      } else {
+        snake.pop();
+      }
+    }
+
+    function collision(head, body) {
+      for (let i = 0; i < body.length; i++) {
+        if (head.x === body[i].x && head.y === body[i].y) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    document.addEventListener('keydown', (event) => {
+      const key = event.keyCode;
+      if (key === 37 && direction !== 'RIGHT') direction = 'LEFT';
+      else if (key === 38 && direction !== 'DOWN') direction = 'UP';
+      else if (key === 39 && direction !== 'LEFT') direction = 'RIGHT';
+      else if (key === 40 && direction !== 'UP') direction = 'DOWN';
+    });
+
+    function startGame(speed) {
+      clearInterval(game);
+      resetGame();
+      game = setInterval(draw, speed);
+    }
+  </script>
+</body>
+</html>
+
